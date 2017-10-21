@@ -1,0 +1,89 @@
+#include <GL/glut.h>
+#include <cmath>
+bool dian1;
+int a, b, c, d;
+//数值微分法划线
+void LineDDA(int x0, int y0, int x1, int y1)//这个函数的作用
+{
+	int dm = 0;//dm是什么
+	//考虑斜率大于1和小于1两种情况
+	if (abs(x1 - x0) > abs(y1 - y0))
+		dm = abs(x1 - x0);//横坐标差的绝对值            
+	else
+		dm = abs(y1 - y0);//纵坐标差的绝对值
+	//当dm = abs(y1 - y0)时，dx的值就等于斜率
+	double dx = double(x1 - x0) / dm;//这是在计算什么？
+	//当dm = abs(x1 - x0)时，dy的值就等于斜率
+	double dy = double(y1 - y0) / dm;
+	//加0.5取整的目的是为了取离真正交点近的像素网格点作为光栅化后的点
+	double x = dx + 0.5;//设置步长？
+	double y = dy + 0.5;
+	for (int i = 0; i < dm; i++)
+	{
+		glBegin(GL_POINTS);//参数表示其下所接收的数据是何种类型
+		glVertex2i((int)x+x0, (int)y+y0 );//glVertex*() 设置顶点坐标
+		glEnd();//glBegin是和glEnd结合起来使用的
+		//x每递增1,y递增k,即dy或者y每递增1，x递增k,即dx
+		x += dx; y += dy;}
+}
+//开始绘制
+void myDisplay(void)
+{
+	LineDDA(a, b, c, d);
+	glFlush();//执行缓存中的绘图指令
+}
+//初始函数
+void Init()
+{
+	glClearColor(0.0, 0.0, 0.0, 0.0);//清空当前的所有颜色RGBAFA;
+	dian1 = false;
+	a = b = c = d = 0;
+	
+	glClear(GL_COLOR_BUFFER_BIT);
+	glShadeModel(GL_FLAT);
+}
+//检测鼠标碰撞
+//左鼠标，右鼠标，滚轮；点击行为按下/松开；提供窗口坐标，左上角为原点；
+void myMouse(int button, int state, int x, int y)
+{
+	if (state == GLUT_DOWN)//如果鼠标按下
+	{
+		if (dian1 == false)//之前没有点过的话
+		{
+			a = x;
+			b = 400-y;//400是什么？屏幕的高度
+			dian1 = true;//表示已经有一个点了
+		}
+		else
+		{
+			c = x;
+			d = 400-y;
+			dian1 = false;
+			myDisplay();
+		}
+	}
+}
+//
+void Reshape(int w, int h)
+{
+	//定义视口，即视见窗口；默认与窗口一致；
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h); 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLdouble)w, 0.0, (GLdouble)h);
+}
+
+int main(int argc, char *argv[])
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);//指定 RGB 颜色模式的窗口;指定单缓存窗口
+	glutInitWindowPosition(100, 100);//初始化窗口位置
+	glutInitWindowSize(400, 400);//初始化窗口尺寸
+	glutCreateWindow("数值微分法"); //参数 TItle
+	Init();
+	glutDisplayFunc(myDisplay); //设置一个函数当需要进行画图时就调用这个函数
+	glutMouseFunc(myMouse);//
+	glutReshapeFunc(Reshape); ///for windows size change
+	glutMainLoop();//进入GLUT事件处理循环，让所有的与“事件”有关的函数调用无限循环
+	return 0;
+}
