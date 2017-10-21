@@ -21,7 +21,7 @@ void myDraw(void)
 	glClear(GL_COLOR_BUFFER_BIT);//清空
 	glLoadIdentity();//将当前矩阵设为单位矩阵；
     //将本次需要执行的缩放、平移等操作放在glPushMatrix和glPopMatrix之间。
-    glTranslatef(0.0f,2.0f,0.0f);//沿坐标轴平移
+    glScalef(3.0,0.5,1.0);//沿坐标轴放大
 	glColor3f(1.0, 0.0, 0.0);
 	drawSquare();
 	glFlush();
