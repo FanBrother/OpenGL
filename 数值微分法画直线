@@ -37,8 +37,7 @@ void Init()
 {
 	glClearColor(0.0, 0.0, 0.0, 0.0);//清空当前的所有颜色RGBAFA;
 	dian1 = false;
-	a = b = c = d = 0;
-	
+	a = b = c = d = 0;		
 	glClear(GL_COLOR_BUFFER_BIT);
 	glShadeModel(GL_FLAT);
 }
