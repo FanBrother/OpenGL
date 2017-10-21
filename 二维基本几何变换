@@ -1,0 +1,38 @@
+#include<gl/glut.h>
+void init(void)
+{
+	glClearColor(1.0,1.0,1.0,0.0);
+	glMatrixMode(GL_PROJECTION);
+	gluOrtho2D(-5.0, 5.0, -5.0, 5.0);//设置显示的范围x:-5~5,y:-5~5                                                                                                                                                 -5.0,5.0);//设置显示的范围x:-5~5,y:-5~5
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void drawSquare(void) //绘制中心在原点，边长为2的正方形
+{
+	glBegin(GL_POLYGON);//顶点指定需按逆时针方向；
+	glVertex2f(-1.0f,-1.0f);//左下点；
+	glVertex2f(1.0f,-1.0f);//右下点；
+	glVertex2f(1.0f,1.0f);//右上点；
+	glVertex2f(-1.0f,1.0f);//左上点；
+	glEnd();
+}
+void myDraw(void)
+{
+	glClear(GL_COLOR_BUFFER_BIT);//清空
+	glLoadIdentity();//将当前矩阵设为单位矩阵；
+    //将本次需要执行的缩放、平移等操作放在glPushMatrix和glPopMatrix之间。
+	glColor3f(1.0, 0.0, 0.0);
+	drawSquare();
+	glFlush();
+}
+void main(int argc,char** argv)
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
+	glutInitWindowPosition(0,0);
+	glutInitWindowSize(600,600);
+	glutCreateWindow("二维基本几何变换示例");
+	init();
+	glutDisplayFunc(myDraw);
+	glutMainLoop();
+}
