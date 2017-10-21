@@ -1,0 +1,150 @@
+#include<cmath>
+#include<gl/glut.h>
+//#include "stdafx.h"
+#include "stdlib.h"
+int a = 0;//当前确定的点的个数
+int b[3][2];//用于存储三个点的坐标
+double k1, k2, k3;
+
+void myInit()
+{
+	glClearColor(1.0, 1.0, 1.0, 0.0);
+	glColor3f(1.0f, 0.8f, 0.0f);
+	glPointSize(1.0); 
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluOrtho2D(0.0, 400, 0.0, 400);
+}
+
+void myDisplay()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+//点亮该像素点
+void huaxian(int x, int y)
+{
+	glBegin(GL_POINTS);
+	glVertex2i(x, y);
+	glEnd();
+	glFlush();
+}
+
+//划线
+void DDALine(int x0, int y0, int x1, int y1)
+{
+	int dm = 0;
+	if (abs(x1 - x0) > abs(y1 - y0))
+		dm = abs(x1 - x0);
+	else
+		dm = abs(y1 - y0);
+	double dx = double(x1 - x0) / dm;
+	//当dm = abs(x1 - x0)时，dy的值就等于斜率
+	double dy = double(y1 - y0) / dm;
+	//加0.5取整的目的是为了取离真正交点近的像素网格点作为光栅化后的点
+	double x = dx + 0.5;
+	double y = dy + 0.5;
+	for (int i = 0; i < dm; i++)
+	{
+		huaxian((int)x + x0, (int)y + y0);
+		x += dx; y += dy;
+	}
+}
+//选择排序，将三个点按照横坐标从左到右存进数组b（原来是按照点击的先后存的）
+void changpoint()
+{
+	int c[2][2];
+	for (int i = 0; i<2; i++)
+	for (int j = i + 1; j < 3; j++)
+	if (b[i][0]>b[j][0])
+	{
+		c[0][0] = b[i][0]; c[1][1] = b[i][1];
+		b[i][0] = b[j][0]; b[i][1] = b[j][1];
+		b[j][0] = c[0][0]; b[j][1] = c[1][1];
+	}
+}
+
+void tianchong()
+{
+	int y0 = b[0][1];
+	int y1 = b[0][1];//y0,y1都是最左点纵坐标
+	int start = b[0][0];//最左点横坐标
+	int model = b[1][0];//中间点横坐标
+	int end = b[2][0];//最右点横坐标
+	double y3 = y0, y4 = y0;
+	int a, b;
+	for (int i = start; i <= end; i++)//x,即i通过循环，每次加1
+	{
+		if (i <= model)//遇到中间点前
+			y3 = y3 + k1;
+		else
+			y3 = y3 + k3;
+		y4 = y4 + k2;
+		a = (int)y3;
+		b = (int)y4;//取整，取离真正交点近的像素网格点作为光栅化后的点
+		if (a > b)//保证a是小于b的
+		{
+			int t = a;
+			a = b; b = t;
+		}
+		for (int j = a; j <= b; j++)
+			huaxian(i, j);//依次点亮从下到上的各点
+	}
+}
+//计算各边斜率
+void xielv()
+{
+	k1 = double(b[1][1] - b[0][1]) / (b[1][0] - b[0][0]);//中间点与最左点
+	k2 = double(b[2][1] - b[0][1]) / (b[2][0] - b[0][0]);//最右点与最左点
+	k3 = double(b[2][1] - b[1][1]) / (b[2][0] - b[1][0]);//最右点与中间点
+}
+//检测鼠标碰撞
+void myMouse(int button, int state, int x, int y)
+{
+	if (state == GLUT_DOWN && a < 3)//保存点并将已有点相连
+	{
+		glPointSize(5.0f);//函数指定栅格化点的直径wei5
+		//点亮现在鼠标点击的像素点
+		huaxian(x, 400-y);
+
+		glPointSize(1.0f);//恢复初始格栅化点的直径
+		//将当前点保存到数组
+		b[a][0] = x;
+		b[a][1] = 400 - y;
+		//如果已经有多个点，将多个点顺序相连
+		if (a)
+			DDALine(b[a - 1][0], b[a - 1][1], b[a][0], b[a][1]);
+		glEnd();
+		a++;
+	}
+	else if (state == GLUT_DOWN&& a > 3)//开始填充
+	{
+		changpoint();
+		xielv();
+		tianchong();
+	}
+
+	else if (state == GLUT_DOWN && a == 3)//将第一个点和第三个点连接
+	{
+		DDALine(b[0][0], b[0][1], b[2][0], b[2][1]);
+		a++;
+	}
+	else if (button == GLUT_RIGHT_BUTTON)//清屏
+	{
+		glColor3f(1.0f, 1.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		a = 0;
+	}
+	glFlush();
+}
+void main(int argc, char **argv)
+{
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowSize(400, 400);
+	glutInitWindowPosition(100, 50);
+	glutCreateWindow("多边形填充");
+	myInit();
+	glutDisplayFunc(myDisplay);
+	glutMouseFunc(myMouse);
+	glutMainLoop();
+}
